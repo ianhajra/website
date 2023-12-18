@@ -4,26 +4,26 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #ece5dc;
+    font-family: 'Source Code Pro', monospace;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     background-color: #d3bcae;
-    font-family: 'Source Code Pro', monospace;
     padding-top: 20px;
     padding-bottom: 20px;
-
+    border-bottom: 1px black solid;
 }
 
 .column {
+    position: relative;
     padding: 0 20px;
     font-size: larger;
-    /* Add padding as needed */
 }
 
 .left-padding {
-    flex: 0.6;
+    flex: 0.5;
 }
 
 .column-left {
@@ -136,6 +136,10 @@ a:focus {
     color: #890707;
 }
 
+.purple-words {
+    color: rgb(93, 14, 195);
+}
+
 .typing-words {
     color: rgb(114, 39, 39);
     text-decoration: none;
@@ -150,7 +154,11 @@ a:focus {
     color: #0e6101;
 }
 
-img {
+.gray-words {
+    color: rgb(83, 66, 66);
+}
+
+.profile-img {
     border-radius: 100%;
     max-width: 76%;
     height: auto;
@@ -167,8 +175,14 @@ img {
     max-height: 35px;
 }
 
+.dark-filler-bar {
+    min-height: 35px;
+    max-height: 35px;
+    background-color: #d3bcae;
+}
+
 .section-header {
-    font-size: 24px;
+    font-size: 22px;
     min-width: 130px;
     max-width: 130px;
     min-height: 50px;
@@ -177,8 +191,81 @@ img {
     text-align: center;
     margin: auto;
     border-radius: 10px;
+    background-color: #d3bcae;
+}
+
+.dark-section-header {
+    font-size: 22px;
+    min-width: 150px;
+    max-width: 150px;
+    min-height: 50px;
+    max-height: 50px;
+    border: 1px black solid;
+    text-align: center;
+    margin: auto;
+    border-radius: 10px;
+    background-color: #ece5dc;
 }
 
 .section-header-text {
-    transform: translateY(-11px);
+    transform: translate(0px, -9px);
+}
+
+.dark-block {
+    flex: 2.6;
+    max-width: 850px;
+    min-width: 850px;
+    background-color: #d3bcae;
+    text-align: left;
+    border: 1px black solid;
+    border-radius: 30px;
+
+    p {
+        margin-top: 0px;
+    }
+
+    .tab {
+        margin-left: 40px;
+        margin-bottom: 4px;
+    }
+
+    .tab-2 {
+        margin-left: 60px;
+        margin-top: 0px;
+    }
+
+    font-size: 16px;
+}
+
+.light-block {
+    flex: 2.6;
+    max-height: 300px;
+    min-height: 300px;
+    max-width: 850px;
+    min-width: 850px;
+    background-color: #ece5dc;
+    text-align: center;
+    border: 1px black solid;
+    border-radius: 30px;
+    font-size: 16px;
+}
+
+.body-block {
+    display: flex;
+}
+
+.body-block-right-padding {
+    flex: 0.5;
+}
+
+.block-boundary {
+    border-bottom: 1px black solid;
+}
+
+.dark {
+    background-color: #d3bcae;
+}
+
+h3 {
+    margin-bottom: 0
 }
