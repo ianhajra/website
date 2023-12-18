@@ -34,7 +34,15 @@ body {
     /* Take up two-thirds of the available space */
 }
 
-.column-divider {}
+.column-divider {
+    flex: 0.1;
+    max-width: 1px;
+    min-width: 1px;
+    max-height: 280px;
+    min-height: 280px;
+    transform: translate(20px, 20px);
+    background-color: black;
+}
 
 .column-right {
     flex: 1;
@@ -131,6 +139,7 @@ a:focus {
 .typing-words {
     color: rgb(114, 39, 39);
     text-decoration: none;
+    cursor: text;
 }
 
 .blue-words {
@@ -151,4 +160,25 @@ img {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+.filler-bar {
+    min-height: 35px;
+    max-height: 35px;
+}
+
+.section-header {
+    font-size: 24px;
+    min-width: 130px;
+    max-width: 130px;
+    min-height: 50px;
+    max-height: 50px;
+    border: 1px black solid;
+    text-align: center;
+    margin: auto;
+    border-radius: 10px;
+}
+
+.section-header-text {
+    transform: translateY(-11px);
 }
