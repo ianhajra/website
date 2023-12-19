@@ -168,7 +168,7 @@ a:focus {
     margin-left: auto;
     margin-right: auto;
     border: 1px black solid;
-    transform: translateY(15px);
+    transform: translateY(25px);
 }
 
 .filler-bar {
@@ -289,4 +289,11 @@ a:focus {
 
 h3 {
     margin-bottom: 0
+}
+
+.icon-setup {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    transform: translate(72px, 45px);
 }
