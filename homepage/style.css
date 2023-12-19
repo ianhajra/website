@@ -14,6 +14,7 @@ body {
     padding-top: 20px;
     padding-bottom: 20px;
     border-bottom: 1px black solid;
+    border-top: 1px black solid;
 }
 
 .column {
@@ -163,11 +164,11 @@ a:focus {
     max-width: 76%;
     height: auto;
     width: auto\9;
-    padding-top: 25px;
-    padding-bottom: 20px;
     display: block;
     margin-left: auto;
     margin-right: auto;
+    border: 1px black solid;
+    transform: translateY(15px);
 }
 
 .filler-bar {
@@ -211,6 +212,10 @@ a:focus {
     transform: translate(0px, -9px);
 }
 
+.less-margins {
+    margin-top: 0px;
+}
+
 .dark-block {
     flex: 2.6;
     max-width: 850px;
@@ -219,10 +224,6 @@ a:focus {
     text-align: left;
     border: 1px black solid;
     border-radius: 30px;
-
-    p {
-        margin-top: 0px;
-    }
 
     .tab {
         margin-left: 40px;
