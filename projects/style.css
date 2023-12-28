@@ -75,7 +75,6 @@ p.intro {
 
 p.center-text {
     margin-top: 0;
-    margin-bottom: 0;
 }
 
 .wave {
@@ -189,8 +188,8 @@ a:focus {
 
 .section-header {
     font-size: 22px;
-    min-width: 130px;
-    max-width: 130px;
+    min-width: 220px;
+    max-width: 220px;
     min-height: 50px;
     max-height: 50px;
     border: 1px black solid;
@@ -202,8 +201,8 @@ a:focus {
 
 .dark-section-header {
     font-size: 22px;
-    min-width: 150px;
-    max-width: 150px;
+    min-width: 190px;
+    max-width: 190px;
     min-height: 50px;
     max-height: 50px;
     border: 1px black solid;
