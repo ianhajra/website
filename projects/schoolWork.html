@@ -19,10 +19,10 @@
             <p class="center-text"><br>This page contains a list and basic desicription of some
                 of the more noteworthy coding projects I have completed for
                 <a class="brown-words highlight" href="https://www.brown.edu/" target="_blank">
-                    school</a> and work.
-                Other, independent personal projects can be found on
+                    school</a>.
+                A description of who I am can be found on
                 <a class="purple-words" href="../homepage/homepage.html"> my homepage</a>.
-                I have not included links to code for school projects - if you would like to
+                I have not included links to code for these projects projects - if you would like to
                 see any of the code for them, please
                 <a href=mailto:“iankhajra@gmail.com” class="blue-words"> contact me</a> and
                 I will figure out appropriately sharing my work with permission of course instructors.
@@ -55,31 +55,116 @@
             <div class="column left-padding"></div>
             <div class="column dark-block">
                 <div>
-                    <p class="standalone">Insert Classes Here
-                    </p>
+                    <div>
+                        <div>
+                            <h3><a class="brown-words highlight" href="https://cs0330-fall2023.github.io/"
+                                    target="_blank">
+                                    CSCI 0330</a></h3>
+                            <p>Introduction to Computer systems</p>
+                        </div>
+                        <div>
+                            <ul class="tab">
+                                <li>Database:
+                                    <p class="tab-2">This project was a thread-safe database hosted on a server that
+                                        different clients will connect to. Each client is given its own pthread and
+                                        the database is accessed and modified via fine-grained locking. The server
+                                        implements basic signal handling and will cleanly open and close client
+                                        connections.</p>
+                                </li>
+                                <li>Malloc:
+                                    <p class="tab-2">I recreated the functionality of C library functions malloc,
+                                        realloc, and free. This was done by creating a doubly-linked list of free
+                                        blocks and allocating them appropriately. Memory usage was optimized via
+                                        coalescing blocks on the free list and by only allocating additional memory when
+                                        required.
+                                    </p>
+                                </li>
+                                <li>Shell:
+                                    <p class="tab-2">Shell was a project that used C to create a basic shell. This shell
+                                        had several builtin functions (including cd, rm, and exit) and would run all
+                                        other commands via execv within a child process. It also handled basic file
+                                        redirection. Additionally, it allowed for execution of foreground and background
+                                        processes, which were tracked by a job list that could be accessed by the user.
+                                        Basic signal handling was also implemented.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <h3><a class="purple-words highlight" href="https://cs.brown.edu/courses/csci0200/2023-spr/"
+                                    target="_blank">
+                                    CSCI 0200</a></h3>
+                            <p>Program Design with Data Structures and Algorithms</p>
+                        </div>
+                        <div>
+                            <ul class="tab">
+                                <li>Search:
+                                    <p class="tab-2">Search was a project that allowed a user to search through wiki
+                                        pages and recieve relevant results. This program indexes the wiki pages and then
+                                        when queried uses a pagerank algorithm to produce relevant results.
+                                    </p>
+                                </li>
+                                <li>Travel Planner:
+                                    <p class="tab-2">This was a partner project completed with
+                                        <a class="green-words" target="_blank"
+                                            href="https://www.linkedin.com/in/ethan-cooperman">Ethan
+                                            Cooperman</a>. Our work
+                                        used implementations of DFS and Dijkstra's algorithm to find the optimal pathing
+                                        between different nodes in a graph. This implementation would work on any graph
+                                        of nodes that were created via inputted csv files of locations and travel
+                                        options between them. It supported finding the quickest, cheapest, and fastest
+                                        path between these locations.
+                                    </p>
+                                </li>
+                                <li>Decision Tree:
+                                    <p class="tab-2">This was a partner project comleted <a class="brown-words"
+                                            target="_blank"
+                                            href="https://www.linkedin.com/in/elizabeth-gresalfi-184581294/">Elizabeth
+                                            Gresalfi</a>. Our
+                                        work created custom decision trees from supported csv inputs. Additional
+                                        inputs would are provided accurately predicted results using our traditionally
+                                        constructed decision tree.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <h3><a class="blue-words highlight" href="https://cs.brown.edu/courses/csci0200/2023-spr/"
+                                    target="_blank">
+                                    CSCI 0150</a></h3>
+                            <p>Introduction to Object-Oriented Programming and Computer Science</p>
+                        </div>
+                        <div>
+                            <ul class="tab">
+                                <li>Indy:
+                                    <p class="tab-2">My final project for this course was a mini arcade machine that
+                                        supported a basic implementation of traditional games of whack-a-mole, simon,
+                                        blackjack, and connect four. You could play a computer or friend in blackjack
+                                        and connect four, and the program included a minimax algorithm to provide more
+                                        competetive computer play.
+                                    </p>
+                                </li>
+                                <li>Tetris:
+                                    <p class="tab-2">I recreated the original tetris gameplay using Java and javaFX.
+                                    </p>
+                                </li>
+                                <li>Cartoon:
+                                    <p class="tab-2">I created a simplified recreation of the original 1-1 level from
+                                        Super Mario Bros. Graphics for the level were created using javaFX.
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="column body-block-right-padding"></div>
         </div>
         <div class="filler-bar block-boundary"></div>
-    </div>
-    <div>
-        <div class="dark-filler-bar"></div>
-        <div class="dark">
-            <div class="dark-section-header">
-                <p class="section-header-text">Work Projects</p>
-            </div>
-            </dive>
-            <div class="dark-filler-bar"></div>
-            <div class="body-block dark">
-                <div class="column left-padding"></div>
-                <div class="column light-block">
-                    <p>Describe PASH here</p>
-                </div>
-                <div class="column body-block-right-padding"></div>
-            </div>
-            <div class="dark-filler-bar block-boundary"></div>
-        </div>
     </div>
 </body>
 

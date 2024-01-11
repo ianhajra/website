@@ -222,20 +222,25 @@ a:focus {
 
 .dark-block {
     flex: 2.6;
-    max-width: 850px;
-    min-width: 850px;
+    max-width: 60%;
+    min-width: 60%;
     background-color: #d3bcae;
     text-align: left;
     border: 1px black solid;
     border-radius: 30px;
 
     .tab {
-        margin-left: 40px;
+        margin-left: 10px;
         margin-bottom: 4px;
     }
 
     .tab-2 {
-        margin-left: 60px;
+        margin-left: 10px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+    }
+
+    p {
         margin-top: 0px;
     }
 
