@@ -370,4 +370,18 @@ h3 {
     .intro {
         text-align: center;
     }
+
+    .icon-setup {
+        width: 30px;
+        height: 30px;
+        display: inline-block;
+        transform: translate(0px, 45px);
+        margin: 0 4px;
+    }
+
+    .icons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }
