@@ -356,6 +356,14 @@ h3 {
         min-height: 40px;
         max-height: 40px;
         margin-bottom: 20px;
-        text-align: justify;
+        text-align: left;
+    }
+
+    .center-text {
+        text-align: center;
+    }
+
+    .intro {
+        text-align: center;
     }
 }

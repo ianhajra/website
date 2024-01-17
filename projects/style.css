@@ -359,7 +359,7 @@ h3 {
         min-height: 40px;
         max-height: 40px;
         margin-bottom: 20px;
-        text-align: justify;
+        text-align: left;
     }
 
     .icon-setup {
@@ -367,5 +367,13 @@ h3 {
         height: 30px;
         display: inline-block;
         transform: translate(52px, 20px);
+    }
+
+    .center-text {
+        text-align: center;
+    }
+
+    .intro {
+        text-align: center;
     }
 }
