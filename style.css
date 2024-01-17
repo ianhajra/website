@@ -301,5 +301,61 @@ h3 {
     width: 30px;
     height: 30px;
     display: inline-block;
-    transform: translate(72px, 45px);
+    transform: translate(68px, 45px);
+}
+
+@media only screen and (max-width: 1000px) {
+    .header {
+        display: block;
+        justify-content: space-between;
+        background-color: #d3bcae;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px black solid;
+        border-top: 1px black solid;
+    }
+
+    .column-left {
+        flex: 1.7;
+        min-width: 70%;
+        max-width: 70%;
+        margin: auto;
+
+        p {
+            margin-bottom: 0px;
+        }
+    }
+
+    .header-divider {
+        max-height: 0px;
+        min-height: 0px;
+        max-width: 0%;
+        min-width: 0%;
+        background-color: black;
+        margin: 15%;
+        margin-top: 6px;
+        margin-bottom: 16px;
+    }
+
+    .column-right {
+        flex: 1;
+        text-align: left;
+        min-width: 70%;
+        max-width: 70%;
+        margin: auto;
+        margin-top: 24px;
+        transform: translate(0px, -34px);
+    }
+
+    .intro {
+        font-family: 'Kalam', sans-serif;
+        font-size: 1.6em;
+    }
+
+    .type-p {
+        min-height: 40px;
+        max-height: 40px;
+        margin-bottom: 20px;
+        text-align: justify;
+    }
 }
