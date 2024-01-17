@@ -366,7 +366,8 @@ h3 {
         width: 30px;
         height: 30px;
         display: inline-block;
-        transform: translate(52px, 20px);
+        transform: translate(0px, 20px);
+        margin: 0 4px;
     }
 
     .center-text {
@@ -375,5 +376,11 @@ h3 {
 
     .intro {
         text-align: center;
+    }
+
+    .icons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 }
