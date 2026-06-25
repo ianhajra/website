@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ocean Background</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --deep-ink: #020812;
+      --sea-ink: #02101f;
+      --navy: #05223c;
+      --soft-cyan: rgba(110, 210, 255, 0.16);
+      --pale-cyan: rgba(142, 236, 255, 0.22);
+      --light-mist: rgba(255, 255, 255, 0.08);
+      --shadow: rgba(0, 7, 20, 0.42);
+      --glow: rgba(137, 225, 255, 0.18);
+      --spark: rgba(235, 255, 255, 0.94);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at top, rgba(16, 67, 115, 0.3), transparent 24%),
+                  linear-gradient(180deg, #041327 0%, #02060f 28%, #01040a 100%);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      position: relative;
+      color: white;
+    }
+
+    .ocean-scene {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at top center, rgba(16, 58, 100, 0.12), transparent 35%),
+                  linear-gradient(180deg, rgba(3, 25, 56, 0.45), rgba(1, 4, 10, 0.96) 75%);
+      transform-style: preserve-3d;
+      perspective: 1200px;
+    }
+
+    .ray-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at top center, rgba(255,255,255,0.05) 0%, transparent 30%),
+        linear-gradient(180deg, rgba(132, 216, 255, 0.22), transparent 45%, rgba(0,0,0,0.28) 100%);
+      mask-image: linear-gradient(180deg, rgba(255,255,255,1) 0%, transparent 52%);
+    }
+
+    .ray-layer::before,
+    .ray-layer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-repeat: no-repeat;
+      opacity: 0.24;
+      filter: blur(16px);
+      mix-blend-mode: screen;
+    }
+
+    .ray-layer::before {
+      background-image: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, transparent 28%, rgba(255,255,255,0.08) 52%, transparent 76%, rgba(255,255,255,0.12) 100%);
+      background-size: 120% 220%;
+      transform: translateX(-18%) skewX(-12deg);
+      animation: rayShift 24s linear infinite;
+    }
+
+    .ray-layer::after {
+      background-image: linear-gradient(90deg, transparent 18%, rgba(255,255,255,0.08) 26%, rgba(255,255,255,0.02) 34%, transparent 60%),
+                        radial-gradient(circle at top center, rgba(255,255,255,0.16), transparent 36%);
+      background-size: 260% 260%;
+      transform: translateX(10%) skewX(12deg);
+      animation: rayShift 28s reverse infinite;
+    }
+
+    .particle-layer,
+    .bubble-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .particle-layer {
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: rgba(168, 235, 255, 0.7);
+      filter: blur(1px);
+      opacity: 0.65;
+      animation: twinkle 12s infinite ease-in-out;
+    }
+
+    .bubble-layer {
+      z-index: 2;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), rgba(227, 255, 255, 0.18) 22%, rgba(13, 49, 83, 0.15) 62%, transparent 100%);
+      box-shadow: inset 0 0 18px rgba(255,255,255,0.28), 0 8px 22px rgba(0, 18, 36, 0.18);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(225, 255, 255, 0.18);
+      opacity: 0.75;
+      transform: translate3d(0, 0, 0);
+      will-change: transform, opacity;
+    }
+
+    .bubble::after {
+      content: "";
+      position: absolute;
+      top: 16%;
+      left: 16%;
+      width: 24%;
+      height: 24%;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.75);
+      filter: blur(1px);
+      opacity: 0.9;
+    }
+
+    .foreground-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 12%, rgba(138, 216, 255, 0.16), transparent 28%),
+                  radial-gradient(circle at 20% 80%, rgba(25, 115, 170, 0.12), transparent 18%),
+                  radial-gradient(circle at 85% 82%, rgba(30, 82, 130, 0.18), transparent 22%);
+      mix-blend-mode: screen;
+      z-index: 4;
+    }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.42) 100%);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .message-bottle-wrap {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      z-index: 7;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      transition: opacity 520ms ease, transform 520ms ease;
+    }
+
+    .message-bottle-wrap.parchment-opened {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.98);
+      pointer-events: none;
+    }
+
+    .message-bottle {
+      position: relative;
+      width: clamp(112px, 12.5vw, 162px);
+      height: clamp(198px, 27vw, 292px);
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      padding: 0;
+      transform: rotate(-9deg);
+      animation: bottle-float 4.6s ease-in-out infinite;
+      filter: drop-shadow(0 14px 24px rgba(2, 12, 24, 0.42));
+    }
+
+    .message-bottle:focus-visible {
+      outline: 2px solid rgba(198, 239, 255, 0.9);
+      outline-offset: 6px;
+      border-radius: 14px;
+    }
+
+    .bottle-glass {
+      position: absolute;
+      inset: 14% 10% 6% 10%;
+      border-radius: 46% 46% 30% 30% / 34% 34% 64% 64%;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255,255,255,0.88), rgba(255,255,255,0.08) 24%, rgba(156, 223, 255, 0.34) 60%, rgba(74, 126, 170, 0.18) 100%),
+        linear-gradient(165deg, rgba(170, 235, 255, 0.54), rgba(116, 187, 223, 0.26));
+      border: 1px solid rgba(219, 245, 255, 0.5);
+      box-shadow: inset 0 0 30px rgba(255,255,255,0.2), inset 0 -16px 20px rgba(24, 80, 122, 0.24);
+      overflow: hidden;
+    }
+
+    .bottle-glass::before {
+      content: "";
+      position: absolute;
+      left: 14%;
+      top: 8%;
+      width: 18%;
+      height: 46%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.52), rgba(255,255,255,0));
+      filter: blur(0.2px);
+      opacity: 0.9;
+    }
+
+    .bottle-glass::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 4%;
+      width: 52%;
+      height: 13%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(16, 66, 100, 0.34), rgba(16, 66, 100, 0.08) 64%, rgba(16, 66, 100, 0) 100%);
+      pointer-events: none;
+    }
+
+    .bottle-neck {
+      position: absolute;
+      left: 50%;
+      top: 4%;
+      width: 30%;
+      height: 25%;
+      transform: translateX(-50%);
+      border-radius: 30% 30% 40% 40% / 18% 18% 82% 82%;
+      background: linear-gradient(180deg, rgba(188, 241, 255, 0.64), rgba(108, 176, 213, 0.24));
+      border: 1px solid rgba(215, 245, 255, 0.5);
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.18);
+      z-index: 2;
+    }
+
+    .bottle-neck::before {
+      content: "";
+      position: absolute;
+      left: -22%;
+      right: -22%;
+      top: 48%;
+      height: 18%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(180, 232, 252, 0.35), rgba(110, 172, 205, 0.35));
+      border: 1px solid rgba(201, 238, 255, 0.45);
+    }
+
+    .bottle-cork {
+      position: absolute;
+      left: 50%;
+      top: 1.2%;
+      width: 22%;
+      height: 10%;
+      transform: translateX(-50%);
+      transform-origin: 50% 100%;
+      border-radius: 18% 18% 16% 16% / 20% 20% 12% 12%;
+      background:
+        repeating-linear-gradient(90deg, rgba(162, 122, 82, 0.9) 0 3px, rgba(146, 108, 71, 0.88) 3px 6px),
+        linear-gradient(180deg, #ba9266, #7c5a3a);
+      border: 1px solid rgba(55, 37, 24, 0.44);
+      box-shadow: inset 0 -3px 4px rgba(62, 42, 26, 0.3);
+      z-index: 3;
+      transition: transform 120ms ease, opacity 120ms ease;
+      will-change: transform, opacity;
+    }
+
+    .message-bottle-wrap.opened .bottle-cork {
+      animation: cork-pop 1400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .message-bottle-wrap.opened .message-bottle {
+      animation: bottle-float 4.6s ease-in-out infinite, bottle-settle 420ms ease-out forwards;
+    }
+
+    .message-bottle-wrap.prompt-visible .parchment-open-button {
+      pointer-events: auto;
+    }
+
+    .bottle-scroll {
+      position: absolute;
+      left: 50%;
+      top: 57%;
+      width: 28%;
+      height: 56%;
+      transform: translate(-50%, -50%) rotate(8deg);
+      transform-origin: 50% 70%;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 18% 14%, rgba(255, 245, 216, 0.56), rgba(255, 245, 216, 0) 34%),
+        radial-gradient(circle at 82% 78%, rgba(173, 130, 80, 0.28), rgba(173, 130, 80, 0) 44%),
+        repeating-linear-gradient(0deg, rgba(138, 100, 58, 0.08) 0 2px, rgba(138, 100, 58, 0) 2px 6px),
+        repeating-linear-gradient(90deg, rgba(118, 86, 52, 0.05) 0 1px, rgba(118, 86, 52, 0) 1px 5px),
+        linear-gradient(180deg, #f7e8c8, #e8d0a5 52%, #ddc091 100%);
+      border: 1px solid rgba(158, 117, 71, 0.52);
+      box-shadow: 0 2px 8px rgba(20, 16, 10, 0.28), inset 0 0 0 1px rgba(255, 241, 208, 0.35);
+      opacity: 0.95;
+      transition: transform 760ms cubic-bezier(0.22, 1, 0.36, 1), opacity 340ms ease;
+      will-change: transform, opacity;
+    }
+
+    .bottle-scroll::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -11%;
+      width: 76%;
+      height: 20%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 62%, rgba(250, 233, 198, 0.98) 0%, rgba(237, 213, 168, 0.95) 58%, rgba(174, 128, 76, 0.6) 88%, rgba(174, 128, 76, 0.24) 100%);
+      border: 1px solid rgba(158, 117, 71, 0.46);
+    }
+
+    .bottle-scroll::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -11%;
+      width: 76%;
+      height: 20%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(250, 233, 198, 0.98) 0%, rgba(237, 213, 168, 0.95) 58%, rgba(174, 128, 76, 0.6) 88%, rgba(174, 128, 76, 0.24) 100%);
+      border: 1px solid rgba(158, 117, 71, 0.46);
+    }
+
+    .bottle-pulse {
+      position: absolute;
+      width: clamp(160px, 19vw, 240px);
+      height: clamp(160px, 19vw, 240px);
+      border-radius: 50%;
+      border: 2px solid rgba(163, 228, 255, 0.4);
+      box-shadow: 0 0 0 1px rgba(116, 197, 234, 0.2);
+      animation: pulse-ring 2.1s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .bottle-hint {
+      margin-top: 12px;
+      font-size: clamp(12px, 1.5vw, 16px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(211, 243, 255, 0.96);
+      text-shadow: 0 2px 8px rgba(6, 28, 46, 0.62);
+      animation: hint-bob 2.1s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+      font-weight: 700;
+    }
+
+    .parchment-prompt {
+      margin-top: 16px;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 420ms ease, transform 420ms ease;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .message-bottle-wrap.prompt-visible .parchment-prompt {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .parchment-prompt-ring {
+      position: relative;
+      width: clamp(160px, 19vw, 240px);
+      height: clamp(160px, 19vw, 240px);
+      border-radius: 50%;
+      border: 2px solid rgba(224, 201, 156, 0.42);
+      box-shadow: 0 0 0 1px rgba(116, 197, 234, 0.14);
+      animation: prompt-ring 2.1s ease-out infinite;
+    }
+
+    .parchment-prompt-ring::before {
+      content: "";
+      position: absolute;
+      inset: 14%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 30%, rgba(255, 250, 234, 0.84), rgba(242, 218, 174, 0.18) 34%, rgba(208, 169, 103, 0.04) 74%, rgba(188, 147, 79, 0) 100%),
+        radial-gradient(circle at center, rgba(224, 201, 156, 0.18), rgba(224, 201, 156, 0) 64%);
+      box-shadow:
+        inset 0 2px 8px rgba(255, 255, 255, 0.26),
+        inset 0 -8px 16px rgba(104, 72, 28, 0.12);
+    }
+
+    .parchment-prompt-ring::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 248, 234, 0.3);
+      opacity: 0.68;
+    }
+
+    .parchment-prompt-text {
+      color: rgba(252, 244, 228, 0.96);
+      font-size: clamp(12px, 1.5vw, 16px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(6, 28, 46, 0.62);
+      animation: hint-bob 2.1s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+      font-weight: 700;
+      text-align: center;
+      max-width: 240px;
+    }
+
+    .parchment-open-button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      pointer-events: none;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      color: inherit;
+      font: inherit;
+    }
+
+    .parchment-open-button:focus-visible {
+      outline: 2px solid rgba(198, 239, 255, 0.9);
+      outline-offset: 8px;
+      border-radius: 999px;
+    }
+
+    .message-bottle-wrap.opened .parchment-open-button {
+      pointer-events: auto;
+    }
+
+    .letter-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4vh 4vw;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 420ms ease;
+      z-index: 20;
+      background: radial-gradient(circle at 50% 18%, rgba(255, 245, 219, 0.16), rgba(18, 22, 31, 0.42));
+      backdrop-filter: blur(1.8px);
+    }
+
+    .letter-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .letter-paper {
+      position: relative;
+      width: min(70vw, 930px);
+      height: min(70vh, 700px);
+      min-height: 340px;
+      padding: clamp(28px, 4.6vw, 56px);
+      color: #2f261c;
+      border-radius: 18px;
+      border: 1px solid rgba(105, 82, 52, 0.34);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 38%),
+        radial-gradient(circle at 80% 82%, rgba(142, 113, 72, 0.12), rgba(142, 113, 72, 0) 44%),
+        repeating-linear-gradient(0deg, rgba(105, 87, 57, 0.045) 0 2px, rgba(255, 246, 227, 0) 2px 5px),
+        linear-gradient(165deg, #f8efd9 0%, #f2e4c7 44%, #ebd8b5 100%);
+      box-shadow: 0 24px 55px rgba(23, 19, 13, 0.46), inset 0 0 0 1px rgba(255, 248, 234, 0.44);
+      clip-path: polygon(1.8% 4.2%, 6.5% 2.1%, 19% 3.2%, 34% 1.2%, 46% 2.9%, 60% 1.5%, 74% 3.8%, 89% 2.1%, 97.5% 4.9%, 98.7% 15%, 97.6% 28%, 99.1% 43%, 97.7% 56%, 98.8% 70%, 97.4% 83.5%, 95.6% 95.8%, 84% 98.1%, 70% 97%, 57% 98.3%, 43% 97.1%, 30% 98.5%, 16% 97.2%, 4.8% 95.2%, 2.5% 84.7%, 3.8% 69%, 2.1% 57%, 3.4% 42%, 1.7% 30%, 3.5% 17%);
+      transform: translateY(28px) scale(0.965);
+      opacity: 0;
+      transition: transform 520ms cubic-bezier(.17,.84,.22,1), opacity 380ms ease;
+      overflow: hidden;
+    }
+
+    .letter-overlay.open .letter-paper {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .letter-paper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(90deg, rgba(130, 102, 64, 0.04) 0 1px, transparent 1px 12px),
+        radial-gradient(circle at 15% 20%, rgba(114, 79, 40, 0.08), transparent 22%),
+        radial-gradient(circle at 85% 76%, rgba(114, 79, 40, 0.08), transparent 24%),
+        radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.16), transparent 54%);
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: 0.8;
+    }
+
+    .letter-title {
+      margin: 0 0 18px 0;
+      font-family: 'Segoe Script', 'Apple Chancery', 'Zapfino', cursive;
+      font-size: clamp(1.8rem, 3vw, 3.7rem);
+      line-height: 1;
+      color: #3b2d20;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.28);
+    }
+
+    .letter-body {
+      margin: 0;
+      font-size: clamp(0.8rem, 0.98vw, 0.95rem);
+      line-height: 1.82;
+      letter-spacing: 0.01em;
+      white-space: pre-wrap;
+      max-width: 54ch;
+      color: #463628;
+    }
+
+    .message-bottle-wrap.clicked .bottle-pulse,
+    .message-bottle-wrap.clicked .bottle-hint {
+      opacity: 0;
+      animation: none;
+    }
+
+    @keyframes bottle-float {
+      0%,
+      100% { transform: rotate(-9deg) translateY(0); }
+      50% { transform: rotate(-8deg) translateY(-7px); }
+    }
+
+    @keyframes bottle-settle {
+      0% { transform: rotate(-9deg) translateY(0); }
+      45% { transform: rotate(-11deg) translateY(2px); }
+      100% { transform: rotate(-9deg) translateY(0); }
+    }
+
+    @keyframes cork-pop {
+      0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+      }
+      22% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-11px) rotate(-4deg) scale(1.04);
+      }
+      48% {
+        opacity: 1;
+        transform: translateX(calc(-50% + 5px)) translateY(-42px) rotate(8deg) scale(1.1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(calc(-50% + 20px)) translateY(-82px) rotate(20deg) scale(0.78);
+      }
+    }
+
+    @keyframes prompt-ring {
+      0%,
+      100% {
+        opacity: 0.85;
+        transform: scale(0.84);
+      }
+      50% {
+        opacity: 0;
+        transform: scale(1.35);
+      }
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        opacity: 0.85;
+        transform: scale(0.84);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.35);
+      }
+    }
+
+    @keyframes hint-bob {
+      0%,
+      100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .hero-copy {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .hero-copy-inner {
+      max-width: 680px;
+      width: min(100%, 720px);
+      padding: 24px 28px;
+      border-radius: 28px;
+      background: rgba(2, 6, 18, 0.32);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(24px);
+      pointer-events: auto;
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      color: rgba(250, 250, 255, 0.94);
+      font-family: 'Segoe Script', 'Apple Chancery', 'Zapfino', cursive;
+      font-size: clamp(2.4rem, 4vw, 5.2rem);
+      line-height: 0.98;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 0.16em solid rgba(255,255,255,0.72);
+      width: 0;
+      animation: typing 3.8s steps(30, end) forwards,
+                 blink-caret 0.8s step-end infinite;
+      margin-bottom: 1.1rem;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      color: rgba(237, 246, 255, 0.78);
+      font-size: clamp(0.96rem, 1.1vw, 1.18rem);
+      line-height: 1.8;
+      opacity: 0;
+      animation: fadeIn 1.5s ease forwards 4.2s;
+      transform: translateY(8px);
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink-caret {
+      50% { border-color: transparent; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes driftRays {
+      0%, 100% { transform: translateY(0) scale(1.02); }
+      50% { transform: translateY(8%) scale(1.05); }
+    }
+
+    @keyframes rayShift {
+      0% { background-position: 0 0; }
+      100% { background-position: -20% 120%; }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.52; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.45); }
+    }
+
+    @media (max-width: 900px) {
+      .ray-layer::before,
+      .ray-layer::after {
+        opacity: 0.16;
+      }
+      .bubble::after {
+        top: 18%;
+        left: 18%;
+        width: 22%;
+        height: 22%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .particle {
+        opacity: 0.45;
+      }
+      .bubble {
+        box-shadow: inset 0 0 14px rgba(255,255,255,0.2), 0 4px 12px rgba(0, 12, 24, 0.16);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ocean-scene">
+    <div class="ray-layer"></div>
+    <div class="particle-layer" id="particleLayer"></div>
+    <div class="bubble-layer" id="bubbleLayer"></div>
+    <div class="foreground-glow"></div>
+    <div class="vignette"></div>
+    <div class="message-bottle-wrap" id="messageBottleWrap">
+      <button class="message-bottle" id="messageBottle" type="button" aria-label="Open message bottle">
+        <span class="bottle-neck"></span>
+        <span class="bottle-cork"></span>
+        <span class="bottle-glass">
+          <span class="bottle-scroll"></span>
+        </span>
+      </button>
+      <span class="bottle-pulse" aria-hidden="true"></span>
+      <span class="bottle-hint" id="bottleHint">Click the bottle</span>
+        <button class="parchment-open-button" id="parchmentOpenButton" type="button" aria-label="Open parchment">
+          <div class="parchment-prompt" id="parchmentPrompt" aria-hidden="true">
+            <span class="parchment-prompt-ring" aria-hidden="true"></span>
+            <span class="parchment-prompt-text">Click to read the parchment</span>
+          </div>
+        </button>
+    </div>
+      <div class="letter-overlay" id="letterOverlay" role="dialog" aria-modal="true" aria-labelledby="letterTitle" aria-hidden="true">
+        <article class="letter-paper">
+          <h2 class="letter-title" id="letterTitle">Dear Hana,</h2>
+          <p class="letter-body" id="letterBody"></p>
+        </article>
+      </div>
+  </div>
+
+  <script>
+    const bubbleCount = 20;
+    const particleCount = 40;
+    const bubbleLayer = document.getElementById('bubbleLayer');
+    const particleLayer = document.getElementById('particleLayer');
+    const messageBottleWrap = document.getElementById('messageBottleWrap');
+    const messageBottle = document.getElementById('messageBottle');
+    const parchmentPrompt = document.getElementById('parchmentPrompt');
+    const parchmentOpenButton = document.getElementById('parchmentOpenButton');
+    const letterOverlay = document.getElementById('letterOverlay');
+    const letterBody = document.getElementById('letterBody');
+    const letterTitle = document.getElementById('letterTitle');
+    const bottleHint = document.getElementById('bottleHint');
+    const bubbles = [];
+    const particles = [];
+    let parchmentTypingRun = 0;
+    let promptRevealTimer = null;
+    const corkPopDurationMs = 1400;
+    const promptDelayAfterCorkMs = 1000;
+
+    const parchmentMessages = {
+      parchment: {
+        title: 'Dear Hana,',
+        body: "TODO!!!!"
+      }
+    };
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    async function typeParchment(text, runId) {
+      if (!letterBody) return;
+      letterBody.textContent = '';
+
+      for (let i = 0; i < text.length; i += 1) {
+        if (runId !== parchmentTypingRun) return;
+        letterBody.textContent += text[i];
+        await sleep(28);
+      }
+    }
+
+    function closeParchment() {
+      if (!letterOverlay) return;
+      parchmentTypingRun += 1;
+      letterOverlay.classList.remove('open');
+      letterOverlay.setAttribute('aria-hidden', 'true');
+      if (messageBottleWrap) {
+        messageBottleWrap.classList.remove('parchment-opened');
+      }
+    }
+
+    async function openParchment() {
+      if (!letterOverlay || !letterBody || !letterTitle) return;
+      const payload = parchmentMessages.parchment;
+
+      parchmentTypingRun += 1;
+      const runId = parchmentTypingRun;
+
+      letterTitle.textContent = payload.title;
+      letterBody.textContent = '';
+
+      letterOverlay.classList.add('open');
+      letterOverlay.setAttribute('aria-hidden', 'false');
+      if (messageBottleWrap) {
+        messageBottleWrap.classList.add('parchment-opened');
+      }
+
+      await sleep(120);
+      if (runId !== parchmentTypingRun) return;
+
+      typeParchment(payload.body, runId);
+    }
+
+    const state = {
+      pointerX: 0,
+      pointerY: 0,
+      targetX: 0,
+      targetY: 0,
+      lastTime: performance.now(),
+    };
+
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function createBubble(depth) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const size = randomBetween(depth === 1 ? 44 : 26, depth === 1 ? 110 : 68);
+      const blur = randomBetween(depth === 1 ? 10 : 4, depth === 1 ? 18 : 9);
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.filter = `blur(${blur}px)`;
+      bubble.style.opacity = `${randomBetween(0.18, 0.58)}`;
+      bubble.style.zIndex = depth === 1 ? 2 : 3;
+
+      const bubbleState = {
+        element: bubble,
+        speed: randomBetween(depth === 1 ? 3.2 : 5.2, depth === 1 ? 7 : 11),
+        x: randomBetween(0, 100),
+        y: randomBetween(0, 120),
+        drift: randomBetween(-0.015, 0.015),
+        size,
+        depth,
+        wave: randomBetween(0, Math.PI * 2),
+      };
+
+      bubbleLayer.appendChild(bubble);
+      return bubbleState;
+    }
+
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      const size = randomBetween(1.5, 4.5);
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.left = `${randomBetween(5, 98)}vw`;
+      particle.style.top = `${randomBetween(5, 96)}vh`;
+      particle.style.opacity = `${randomBetween(0.18, 0.68)}`;
+      particle.style.transform = `scale(${randomBetween(0.55, 1.1)})`;
+
+      const particleState = {
+        element: particle,
+        phase: randomBetween(0, Math.PI * 2),
+        amplitude: randomBetween(6, 18),
+        baseX: parseFloat(particle.style.left),
+        baseY: parseFloat(particle.style.top),
+        speed: randomBetween(0.0008, 0.0016),
+      };
+
+      particleLayer.appendChild(particle);
+      return particleState;
+    }
+
+    function initScene() {
+      for (let i = 0; i < bubbleCount; i += 1) {
+        bubbles.push(createBubble(i % 2 === 0 ? 1 : 2));
+      }
+      for (let i = 0; i < particleCount; i += 1) {
+        particles.push(createParticle());
+      }
+    }
+
+    function updateScene(now) {
+      const dt = Math.min(0.032, (now - state.lastTime) / 1000);
+      state.lastTime = now;
+      state.pointerX += (state.targetX - state.pointerX) * 0.06;
+      state.pointerY += (state.targetY - state.pointerY) * 0.06;
+
+      const parallaxX = state.pointerX * 0.6;
+      const parallaxY = state.pointerY * 0.4;
+
+      bubbles.forEach((bubble, index) => {
+        bubble.y -= bubble.speed * dt;
+        bubble.x += bubble.drift * dt * 24;
+        bubble.wave += dt * 1.2;
+        if (bubble.y < -22) {
+          bubble.y = 118;
+          bubble.x = randomBetween(2, 98);
+        }
+        if (bubble.x < -12) bubble.x = 105;
+        if (bubble.x > 110) bubble.x = -10;
+
+        const sway = Math.sin(bubble.wave) * (bubble.depth === 1 ? 2.4 : 3.6);
+        const x = bubble.x + sway * 0.6 + parallaxX * (bubble.depth === 1 ? 0.05 : 0.11);
+        const y = bubble.y + parallaxY * (bubble.depth === 1 ? 0.05 : 0.1);
+        bubble.element.style.transform = `translate3d(${x}vw, ${y}vh, 0) scale(${bubble.depth === 1 ? 1 : 0.95})`;
+      });
+
+      particles.forEach((particle) => {
+        particle.phase += dt * particle.speed * 260;
+        const offsetX = Math.cos(particle.phase) * particle.amplitude * 0.4;
+        const offsetY = Math.sin(particle.phase) * particle.amplitude * 0.25;
+        particle.element.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0) scale(0.98)`;
+      });
+
+      requestAnimationFrame(updateScene);
+    }
+
+    function handlePointer(event) {
+      const x = event.clientX / window.innerWidth;
+      const y = event.clientY / window.innerHeight;
+      state.targetX = (x - 0.5) * 26;
+      state.targetY = (y - 0.5) * 18;
+    }
+
+    function handleTouch(event) {
+      if (!event.touches.length) return;
+      handlePointer(event.touches[0]);
+    }
+
+    window.addEventListener('pointermove', handlePointer);
+    window.addEventListener('touchmove', handleTouch, { passive: true });
+    window.addEventListener('resize', () => {
+      bubbles.forEach((bubble) => {
+        bubble.x = Math.min(100, Math.max(0, bubble.x));
+        bubble.y = Math.min(100, Math.max(0, bubble.y));
+      });
+    });
+
+    if (messageBottle) {
+      let bottleOpened = false;
+
+      const activateBottle = () => {
+        if (bottleOpened) {
+          return;
+        }
+        bottleOpened = true;
+        if (messageBottleWrap) {
+          messageBottleWrap.classList.add('clicked');
+          messageBottleWrap.classList.add('opened');
+        }
+        if (parchmentPrompt) {
+          parchmentPrompt.setAttribute('aria-hidden', 'true');
+        }
+        if (promptRevealTimer) {
+          window.clearTimeout(promptRevealTimer);
+        }
+        promptRevealTimer = window.setTimeout(() => {
+          if (messageBottleWrap) {
+            messageBottleWrap.classList.add('prompt-visible');
+          }
+          if (parchmentPrompt) {
+            parchmentPrompt.setAttribute('aria-hidden', 'false');
+          }
+        }, corkPopDurationMs + promptDelayAfterCorkMs);
+        if (messageBottleWrap) {
+          messageBottleWrap.classList.remove('prompt-visible');
+        }
+        if (bottleHint) {
+          bottleHint.textContent = 'Nice find';
+        }
+        messageBottle.setAttribute('aria-pressed', 'true');
+        messageBottle.disabled = true;
+      };
+
+      messageBottle.addEventListener('click', activateBottle);
+      messageBottle.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activateBottle();
+        }
+      });
+    }
+
+    if (parchmentOpenButton) {
+      parchmentOpenButton.addEventListener('click', openParchment);
+      parchmentOpenButton.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openParchment();
+        }
+      });
+    }
+
+    if (letterOverlay) {
+      letterOverlay.addEventListener('click', (event) => {
+        if (event.target === letterOverlay) {
+          closeParchment();
+        }
+      });
+    }
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && letterOverlay && letterOverlay.classList.contains('open')) {
+        closeParchment();
+      }
+    });
+
+    initScene();
+    requestAnimationFrame(updateScene);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimal Beach Background</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --sky-top: #dceefa;
+      --sky-bottom: #f6e8d5;
+      --ocean-start: #8bc6f4;
+      --ocean-end: #5ea5d8;
+      --sand: #f3e4c9;
+      --horizon: rgba(255, 255, 255, 0.45);
+      --rock: #b6b1ad;
+      --rock-shadow: rgba(46, 48, 56, 0.08);
+      --swell-opacity: 0.16;
+      --horizon-offset: 46vh;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #ecf6fc;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--sky-top) 0%, #eaf3fb 42%, var(--sky-bottom) 100%);
+      transition: opacity 4000ms ease;
+    }
+
+    .scene.scene-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .horizon {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--horizon-offset);
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--horizon) 45%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .ocean {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--horizon-offset);
+      bottom: 16%;
+      background: linear-gradient(180deg, var(--ocean-start) 0%, #7eb1dd 50%, var(--ocean-end) 100%);
+      overflow: hidden;
+    }
+
+    .ocean::before,
+    .ocean::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 45% 20%, rgba(255,255,255,0.26), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 16%, transparent 100%);
+      opacity: var(--swell-opacity);
+      pointer-events: none;
+      animation: drift 28s linear infinite;
+    }
+
+    .ocean::after {
+      opacity: 0.12;
+      animation: drift-alt 35s linear infinite;
+    }
+
+    .wave-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .whirlpool {
+      position: absolute;
+      left: 43%;
+      top: 46%;
+      width: 116px;
+      height: 56px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 48%, rgba(28, 68, 120, 0.9) 0%, rgba(50, 103, 164, 0.74) 34%, rgba(89, 151, 210, 0.38) 62%, rgba(123, 182, 231, 0.1) 84%, rgba(126, 184, 232, 0) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 2px rgba(27, 69, 121, 0.14), 0 2px 6px rgba(31, 85, 143, 0.08);
+      z-index: 3;
+      pointer-events: auto;
+      animation: whirlpool-surface 3.8s ease-in-out infinite;
+    }
+
+    .whirlpool.locked {
+      cursor: not-allowed;
+      filter: grayscale(0.15) saturate(0.8);
+      opacity: 0.86;
+    }
+
+    .whirlpool.ready {
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 2px rgba(27, 69, 121, 0.14), 0 2px 6px rgba(31, 85, 143, 0.08), 0 0 0 2px rgba(183, 229, 255, 0.42);
+    }
+
+    .whirl-line {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--line-w, 22px);
+      height: var(--line-h, 9px);
+      border-top: 2px solid rgba(255, 255, 255, 0.78);
+      border-radius: 50% 50% 45% 45%;
+      transform-origin: center;
+      opacity: 0;
+      animation: whirl-line-in 5.2s linear infinite;
+      animation-delay: var(--delay, 0s);
+      pointer-events: none;
+    }
+
+    .whirl-edge-line {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--edge-w, 18px);
+      height: var(--edge-h, 7px);
+      border-top: 2px solid rgba(255, 255, 255, 0.65);
+      border-radius: 999px;
+      opacity: 0;
+      transform-origin: center;
+      animation: whirl-edge-flow 6.2s linear infinite;
+      animation-delay: var(--delay, 0s);
+      pointer-events: none;
+    }
+
+    @keyframes whirl-line-in {
+      0% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--sx, 34px)), calc(-50% + var(--sy, 0px))) scale(1);
+      }
+      20% {
+        opacity: 0.75;
+      }
+      70% {
+        opacity: 0.6;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--ex, 7px)), calc(-50% + var(--ey, 0px))) scale(0.55);
+      }
+    }
+
+    @keyframes whirl-edge-flow {
+      0% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--sx, 40px)), calc(-50% + var(--sy, 0px))) rotate(var(--rot, 0deg)) scale(1);
+      }
+      20% {
+        opacity: 0.65;
+      }
+      80% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--ex, 32px)), calc(-50% + var(--ey, 0px))) rotate(calc(var(--rot, 0deg) + 14deg)) scale(0.9);
+      }
+    }
+
+    @keyframes whirlpool-surface {
+      0%,
+      100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, calc(-50% + 1px)) scale(0.985); }
+    }
+
+    .wave {
+      position: absolute;
+      width: var(--width, 48px);
+      height: 18px;
+      opacity: 0;
+      transform-origin: left center;
+      animation: float var(--duration, 7s) ease-in-out infinite var(--delay, 0s);
+      animation-fill-mode: both;
+      left: var(--x, 30%);
+      top: var(--y, 21%);
+      transform: scaleX(var(--scale, 0.96)) rotate(var(--rotation, -1deg));
+      background-image: var(--wave-bg);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .wave::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateY(2px) scaleY(0.95);
+      background-image: var(--wave-shadow);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      opacity: 0.9;
+    }
+
+    @keyframes float {
+      0% {
+        opacity: 0;
+        left: var(--x);
+        top: var(--y);
+        transform: translateX(0) translateY(0) scaleX(var(--scale)) rotate(var(--rotation));
+      }
+      10% {
+        opacity: 0.2;
+        left: calc(var(--x) + 0.2%);
+        top: calc(var(--y) + 0.4px);
+      }
+      22% {
+        opacity: 0.76;
+        left: calc(var(--x) + 0.7%);
+        top: calc(var(--y) + 1.5px);
+      }
+      32% {
+        opacity: 0.98;
+        left: calc(var(--x) + 1.1%);
+        top: calc(var(--y) + 2.4px);
+      }
+      44% {
+        opacity: 0.78;
+        left: calc(var(--x) + 1.7%);
+        top: calc(var(--y) + 4px);
+      }
+      56% {
+        opacity: 0.48;
+        left: calc(var(--x) + 2.2%);
+        top: calc(var(--y) + 5.8px);
+      }
+      70% {
+        opacity: 0.18;
+        left: calc(var(--x) + 3%);
+        top: calc(var(--y) + 8px);
+      }
+      100% {
+        opacity: 0;
+        left: calc(var(--x) + 2%);
+        top: calc(var(--y) + 5px);
+        transform: translateX(0) translateY(0) scaleX(calc(var(--scale) + 0.03)) rotate(var(--rotation));
+      }
+    }
+
+    .beach {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 16%;
+      min-height: 100px;
+      background: linear-gradient(180deg, rgba(243, 228, 201, 0.98) 0%, var(--sand) 100%);
+    }
+
+    .beach::before {
+      content: "";
+      position: absolute;
+      top: -45px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 55px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1200 45'%3E%3Cpath d='M0 28 Q 200 18 400 26 Q 600 32 800 22 Q 1000 16 1200 28 L 1200 55 L 0 55 Z' fill='rgba(243, 228, 201, 0.98)'/%3E%3C/svg%3E") no-repeat center;
+      background-size: 100% 100%;
+      pointer-events: none;
+    }
+
+    /* Polaroid-style photo sitting on the beach */
+    .polaroid {
+      position: absolute;
+      left: 8%;
+      bottom: 12px; /* sits on top of the beach area */
+      width: 140px;
+      background: #fff;
+      padding: 10px 10px 18px;
+      border-radius: 6px;
+      box-shadow: 6px 8px 0 rgba(0,0,0,0.12), 0 12px 25px rgba(0,0,0,0.08);
+      transform: rotate(-6deg);
+      cursor: default;
+      z-index: 3;
+      pointer-events: auto;
+    }
+
+    .polaroid img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 3px;
+    }
+
+    .polaroid .caption {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    @media (max-width: 520px) {
+      .polaroid { width: 110px; left: 6%; }
+    }
+
+
+
+    .rock {
+      position: absolute;
+      background: var(--rock);
+      border-radius: 58% 42% 49% 51% / 55% 48% 52% 45%;
+      box-shadow: inset -3px 4px 0 rgba(255,255,255,0.22), 0 14px 28px var(--rock-shadow);
+    }
+
+    .rock:nth-of-type(1) {
+      width: 110px;
+      height: 62px;
+      left: 10%;
+      bottom: 11%;
+      transform: rotate(-4deg);
+    }
+
+    .rock:nth-of-type(2) {
+      width: 82px;
+      height: 50px;
+      left: 28%;
+      bottom: 13%;
+      transform: rotate(3deg);
+    }
+
+    .rock:nth-of-type(3) {
+      width: 140px;
+      height: 78px;
+      right: 8%;
+      bottom: 13%;
+      transform: rotate(2deg);
+    }
+
+    .turtle {
+      position: absolute;
+      left: 50%;
+      bottom: 42%;
+      width: 48px;
+      height: 34px;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .turtle-shell {
+      position: absolute;
+      inset: 0;
+      border-radius: 52% 52% 42% 42% / 55% 55% 45% 45%;
+      background: #6f8a5f;
+      box-shadow: inset -4px 4px 0 rgba(255,255,255,0.18), 0 2px 5px rgba(0,0,0,0.18);
+      border: 1px solid rgba(0,0,0,0.14);
+    }
+
+    .turtle-head {
+      position: absolute;
+      left: -10px;
+      top: 8px;
+      width: 18px;
+      height: 16px;
+      background: #6f8a5f;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.14);
+    }
+
+    .turtle-head::after {
+      content: "";
+      position: absolute;
+      right: 2px;
+      top: 6px;
+      width: 4px;
+      height: 2px;
+      background: rgba(0,0,0,0.18);
+      border-radius: 50%;
+    }
+
+    .turtle-eye {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #1b1b1b;
+      border-radius: 50%;
+      top: 5px;
+      animation: blink 3.8s infinite ease-in-out;
+      transform-origin: center;
+    }
+
+    .turtle-eye.left {
+      left: 3px;
+    }
+
+    .turtle-eye.right {
+      right: 3px;
+    }
+
+    .turtle-leg {
+      position: absolute;
+      width: 9px;
+      height: 6px;
+      background: #4f6a45;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+
+    .leg-front.left {
+      left: 2px;
+      bottom: 2px;
+      transform: rotate(-12deg);
+    }
+
+    .leg-front.right {
+      right: 2px;
+      bottom: 2px;
+      transform: rotate(12deg);
+    }
+
+    .leg-back.left {
+      left: 5px;
+      bottom: -2px;
+      transform: rotate(-8deg);
+    }
+
+    .leg-back.right {
+      right: 5px;
+      bottom: -2px;
+      transform: rotate(8deg);
+    }
+
+    .crab {
+      position: absolute;
+      left: 62%;
+      bottom: 14%;
+      width: 32px;
+      height: 22px;
+      transform: translateX(-50%);
+      pointer-events: auto;
+      cursor: pointer;
+      z-index: 2;
+      animation: scuttle 6s ease-in-out infinite;
+    }
+
+    .crab:focus-visible {
+      outline: 2px solid rgba(255, 138, 61, 0.8);
+      outline-offset: 4px;
+    }
+
+    .turtle {
+      position: absolute;
+      left: 50%;
+      bottom: 42%;
+      width: 48px;
+      height: 34px;
+      transform: translateX(-50%);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .turtle:focus-visible {
+      outline: 2px solid rgba(111, 138, 95, 0.8);
+      outline-offset: 4px;
+    }
+
+    .crab-body {
+      position: relative;
+      left: 50%;
+      top: 6px;
+      width: 32px;
+      height: 18px;
+      background: #ff8a3d;
+      border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+      transform: translateX(-50%);
+      box-shadow: inset -2px -1px 0 rgba(255,255,255,0.18), 0 2px 4px rgba(0,0,0,0.16);
+      border: 1px solid rgba(0,0,0,0.12);
+      overflow: visible;
+    }
+
+    .crab-eye {
+      position: absolute;
+      top: 3px;
+      width: 6px;
+      height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .crab-eye::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 2px;
+      height: 2px;
+      background: #3f1d00;
+      border-radius: 50%;
+    }
+
+    .crab-eye.left {
+      left: 6px;
+    }
+
+    .crab-eye.right {
+      right: 6px;
+    }
+
+    .crab-claw {
+      position: absolute;
+      top: 8px;
+      width: 10px;
+      height: 10px;
+      background: #ff8a3d;
+      border-radius: 50% 50% 40% 40%;
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+
+    .crab-claw.left {
+      left: -6px;
+      transform: rotate(-25deg);
+    }
+
+    .crab-claw.right {
+      right: -6px;
+      transform: rotate(25deg);
+    }
+
+    .crab-leg {
+      position: absolute;
+      bottom: 0;
+      width: 6px;
+      height: 5px;
+      background: #e96b24;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.12);
+      transform-origin: center;
+    }
+
+    .crab-leg.left {
+      left: 4px;
+      transform: rotate(-20deg);
+    }
+
+    .crab-leg.right {
+      right: 4px;
+      transform: rotate(20deg);
+    }
+
+
+    @keyframes blink {
+      0%, 90%, 100% { transform: scaleY(1); }
+      92%, 96% { transform: scaleY(0.14); }
+    }
+
+    @keyframes scuttle {
+      0%, 12%, 100% {
+        transform: translateX(-50%) translateX(0);
+      }
+      24%, 36% {
+        transform: translateX(-50%) translateX(-25px);
+      }
+      60%, 72% {
+        transform: translateX(-50%) translateX(25px);
+      }
+      84%, 96% {
+        transform: translateX(-50%) translateX(0);
+      }
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 40% 12%, rgba(255,255,255,0.08), transparent 18%),
+        radial-gradient(circle at 18% 42%, rgba(255,255,255,0.05), transparent 14%);
+    }
+
+    @media (max-aspect-ratio: 4/5) {
+      .ocean { bottom: 18%; }
+      .beach { height: 18%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ocean::before,
+      .ocean::after,
+      .wave,
+      .whirlpool,
+      .whirl-line,
+      .whirl-edge-line {
+        animation: none;
+      }
+    }
+
+    /* 8-bit style dialog box */
+    .dialog {
+      position: absolute;
+      left: 50%;
+      top: 8%;
+      transform: translateX(-50%) translateY(0);
+      width: min(86%, 720px);
+      max-width: 720px;
+      pointer-events: auto;
+      z-index: 5;
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: clamp(16px, 2.6vw, 20px);
+    }
+
+    .dialog-window {
+      background: #fff7d9;
+      border: 6px solid #000;
+      padding: 16px 18px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      box-shadow: 6px 6px 0 0 rgba(0,0,0,0.06), 8px 8px 0 0 rgba(0,0,0,0.06);
+      transition: transform 600ms cubic-bezier(.2,.8,.2,1), opacity 600ms ease;
+    }
+
+    .dialog-text {
+      color: #111;
+      line-height: 1.28;
+      white-space: pre-wrap;
+      min-height: 2.56em; /* ~20% smaller */
+      flex: 1;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center; /* vertically center 2-line text */
+    }
+
+    .dialog-next {
+      background: linear-gradient(180deg,#f7f2ea,#efe6d8);
+      border: 4px solid #000;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 0 #000;
+      border-radius: 4px;
+      user-select: none;
+      font-size: 0.95em;
+    }
+
+    .dialog-next:active { transform: translateY(2px); box-shadow: 2px 2px 0 #000; }
+
+    .dialog-next:focus { outline: 3px solid rgba(0,0,0,0.15); outline-offset: 4px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dialog-text { transition: none; }
+    }
+
+    /* Hide animation for final next */
+    .dialog-hide {
+      animation: dialogUp 600ms cubic-bezier(.2,.8,.2,1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes dialogUp {
+      0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+      100% { transform: translateX(-50%) translateY(-120%); opacity: 0; }
+    }
+
+    .underwater-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 14;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1200ms ease;
+      background: #031324;
+    }
+
+    .underwater-stage.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .underwater-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #031324;
+    }
+
+    .letter-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4vh 4vw;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 420ms ease;
+      z-index: 20;
+      background: radial-gradient(circle at 50% 18%, rgba(255, 245, 219, 0.16), rgba(18, 22, 31, 0.42));
+      backdrop-filter: blur(1.8px);
+    }
+
+    .letter-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .letter-paper {
+      position: relative;
+      width: min(70vw, 930px);
+      height: min(70vh, 700px);
+      min-height: 340px;
+      padding: clamp(28px, 4.6vw, 56px);
+      color: #2f261c;
+      border-radius: 18px;
+      border: 1px solid rgba(105, 82, 52, 0.34);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 38%),
+        radial-gradient(circle at 80% 82%, rgba(142, 113, 72, 0.12), rgba(142, 113, 72, 0) 44%),
+        repeating-linear-gradient(0deg, rgba(105, 87, 57, 0.045) 0 2px, rgba(255, 246, 227, 0) 2px 5px),
+        linear-gradient(165deg, #f8efd9 0%, #f2e4c7 44%, #ebd8b5 100%);
+      box-shadow: 0 24px 55px rgba(23, 19, 13, 0.46), inset 0 0 0 1px rgba(255, 248, 234, 0.44);
+      clip-path: polygon(1.8% 4.2%, 6.5% 2.1%, 19% 3.2%, 34% 1.2%, 46% 2.9%, 60% 1.5%, 74% 3.8%, 89% 2.1%, 97.5% 4.9%, 98.7% 15%, 97.6% 28%, 99.1% 43%, 97.7% 56%, 98.8% 70%, 97.4% 83.5%, 95.6% 95.8%, 84% 98.1%, 70% 97%, 57% 98.3%, 43% 97.1%, 30% 98.5%, 16% 97.2%, 4.8% 95.2%, 2.5% 84.7%, 3.8% 69%, 2.1% 57%, 3.4% 42%, 1.7% 30%, 3.5% 17%);
+      transform: translateY(28px) scale(0.965);
+      opacity: 0;
+      transition: transform 520ms cubic-bezier(.17,.84,.22,1), opacity 380ms ease;
+      overflow: hidden;
+    }
+
+    .letter-overlay.open .letter-paper {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .letter-paper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 7% 15%, rgba(120, 83, 41, 0.12), rgba(120, 83, 41, 0) 16%),
+        radial-gradient(circle at 88% 17%, rgba(120, 83, 41, 0.13), rgba(120, 83, 41, 0) 20%),
+        radial-gradient(circle at 14% 86%, rgba(120, 83, 41, 0.09), rgba(120, 83, 41, 0) 18%),
+        radial-gradient(circle at 90% 82%, rgba(120, 83, 41, 0.12), rgba(120, 83, 41, 0) 22%);
+      pointer-events: none;
+      mix-blend-mode: multiply;
+    }
+
+    .letter-title {
+      margin: 0 0 16px;
+      font-size: clamp(20px, 3.4vw, 36px);
+      line-height: 0.95;
+      font-family: "Segoe Print", "Lucida Handwriting", "Comic Sans MS", cursive;
+      font-weight: 600;
+      color: #4f3821;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+      letter-spacing: 0.02em;
+    }
+
+    .letter-body {
+      margin: 0;
+      width: 100%;
+      min-height: 62%;
+      font-size: clamp(18px, 2.6vw, 32px);
+      line-height: 1.18;
+      white-space: pre-wrap;
+      font-family: "Segoe Print", "Lucida Handwriting", "Comic Sans MS", cursive;
+      color: #513726;
+      letter-spacing: 0.01em;
+      overflow: auto;
+      padding-right: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(96, 68, 42, 0.55) rgba(255, 255, 255, 0.2);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .letter-controls {
+      position: absolute;
+      right: clamp(12px, 2.2vw, 24px);
+      top: clamp(12px, 2.2vw, 24px);
+      display: flex;
+      gap: 10px;
+    }
+
+    .letter-close {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      border: none;
+      background: transparent;
+      color: #e63946;
+      font-size: 28px;
+      font-weight: 300;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: transform 140ms ease, color 140ms ease;
+    }
+
+    .letter-close:hover {
+      color: #d62828;
+      transform: scale(1.15);
+    }
+
+    .letter-close:active {
+      transform: scale(0.95);
+    }
+
+    .letter-close:focus-visible {
+      outline: 2px solid #e63946;
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 680px) {
+      .letter-paper {
+        width: min(92vw, 930px);
+        height: min(76vh, 700px);
+        padding: 24px;
+      }
+
+      .letter-body {
+        font-size: clamp(26px, 9vw, 38px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="horizon"></div>
+    <div class="dialog" aria-label="Game dialog" role="region">
+      <div class="dialog-window">
+        <div class="dialog-text" id="dialogText" aria-live="polite"></div>
+        <button class="dialog-next" id="dialogNext" aria-label="Next message">Next</button>
+      </div>
+    </div>
+    <div class="ocean">
+      <div class="wave-lines">
+        <div class="wave" style="--x: 12%; --y: 14%; --width: 28px; --scale: 0.9; --rotation:-1.6deg; --duration: 7s; --delay: 0s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 18 3 36 15 54 7 C 72 -1 90 13 100 8%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 18 3 36 15 54 7 C 72 -1 90 13 100 8%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 72%; --y: 8%; --width: 24px; --scale: 0.88; --rotation:-1.9deg; --duration: 7.4s; --delay: 2.1s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 15 4 35 14 50 8 C 70 2 85 12 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 15 4 35 14 50 8 C 70 2 85 12 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 34%; --y: 22%; --width: 42px; --scale: 0.93; --rotation:-1.2deg; --duration: 7.1s; --delay: 4.2s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 10 C 25 2 40 16 60 6 C 80 -2 95 14 100 9%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 10 C 25 2 40 16 60 6 C 80 -2 95 14 100 9%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 68%; --y: 26%; --width: 46px; --scale: 0.94; --rotation:-1deg; --duration: 7.5s; --delay: 0.8s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 13 C 20 6 38 12 55 9 C 75 4 90 11 100 7%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 13 C 20 6 38 12 55 9 C 75 4 90 11 100 7%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 18%; --y: 32%; --width: 54px; --scale: 0.96; --rotation:-0.8deg; --duration: 7.6s; --delay: 3.4s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 9 C 16 5 38 13 52 8 C 70 0 92 14 100 11%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 9 C 16 5 38 13 52 8 C 70 0 92 14 100 11%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 50%; --y: 42%; --width: 70px; --scale: 0.99; --rotation:-0.3deg; --duration: 6.8s; --delay: 1.7s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 18 4 35 14 52 7 C 68 1 88 12 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 18 4 35 14 52 7 C 68 1 88 12 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 76%; --y: 36%; --width: 60px; --scale: 0.98; --rotation:-0.6deg; --duration: 7.3s; --delay: 5.1s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 22 3 42 15 55 8 C 72 -1 92 13 100 9%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 22 3 42 15 55 8 C 72 -1 92 13 100 9%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 22%; --y: 52%; --width: 84px; --scale: 0.92; --rotation:-0.4deg; --duration: 7.2s; --delay: 2.8s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 13 C 18 5 36 13 50 9 C 70 3 88 14 100 8%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 13 C 18 5 36 13 50 9 C 70 3 88 14 100 8%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 58%; --y: 56%; --width: 94px; --scale: 0.96; --rotation:-0.2deg; --duration: 7.4s; --delay: 4.9s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 10 C 20 2 38 16 58 6 C 78 -2 94 14 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 10 C 20 2 38 16 58 6 C 78 -2 94 14 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 44%; --y: 62%; --width: 110px; --scale: 1.02; --rotation:0.1deg; --duration: 7.2s; --delay: 1.3s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 16 4 34 14 48 8 C 68 2 86 12 100 11%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 16 4 34 14 48 8 C 68 2 86 12 100 11%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 82%; --y: 72%; --width: 128px; --scale: 1.04; --rotation:0.2deg; --duration: 7.3s; --delay: 3.9s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 18 5 36 13 54 8 C 72 1 90 14 100 9%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 18 5 36 13 54 8 C 72 1 90 14 100 9%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+        <div class="wave" style="--x: 8%; --y: 70%; --width: 132px; --scale: 1.05; --rotation:0.3deg; --duration: 7.5s; --delay: 5.6s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 13 C 16 6 38 12 52 9 C 72 4 92 11 100 7%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 13 C 16 6 38 12 52 9 C 72 4 92 11 100 7%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+      </div>
+      <div class="whirlpool locked" role="button" tabindex="0" aria-label="Whirlpool" aria-disabled="true">
+        <span class="whirl-edge-line" style="--sx: 43px; --sy: -8px; --ex: 27px; --ey: -13px; --rot: -18deg; --edge-w: 20px; --edge-h: 7px; --delay: 0.4s;"></span>
+        <span class="whirl-edge-line" style="--sx: -40px; --sy: -6px; --ex: -26px; --ey: -12px; --rot: 165deg; --edge-w: 18px; --edge-h: 7px; --delay: 1.7s;"></span>
+        <span class="whirl-edge-line" style="--sx: -35px; --sy: 9px; --ex: -22px; --ey: 13px; --rot: 204deg; --edge-w: 17px; --edge-h: 6px; --delay: 2.9s;"></span>
+        <span class="whirl-edge-line" style="--sx: 37px; --sy: 10px; --ex: 23px; --ey: 14px; --rot: 21deg; --edge-w: 19px; --edge-h: 7px; --delay: 4.1s;"></span>
+        <span class="whirl-line" style="--sx: 40px; --sy: -7px; --ex: 8px; --ey: -2px; --tilt: -10deg; --line-w: 24px; --line-h: 9px; --delay: 0s;"></span>
+        <span class="whirl-line" style="--sx: -36px; --sy: -9px; --ex: -7px; --ey: -2px; --tilt: 166deg; --line-w: 21px; --line-h: 8px; --delay: 0.8s;"></span>
+        <span class="whirl-line" style="--sx: -34px; --sy: 6px; --ex: -6px; --ey: 2px; --tilt: 198deg; --line-w: 22px; --line-h: 9px; --delay: 1.6s;"></span>
+        <span class="whirl-line" style="--sx: 29px; --sy: 10px; --ex: 6px; --ey: 3px; --tilt: 18deg; --line-w: 18px; --line-h: 8px; --delay: 2.4s;"></span>
+        <span class="whirl-line" style="--sx: 2px; --sy: -13px; --ex: 0px; --ey: -3px; --tilt: 82deg; --line-w: 19px; --line-h: 8px; --delay: 3.2s;"></span>
+      </div>
+    </div>
+    <div class="beach">
+      <div class="rock"></div>
+      <div class="rock"></div>
+      <div class="rock">
+        <div class="turtle" role="button" tabindex="0">
+          <div class="turtle-shell"></div>
+          <div class="turtle-head">
+            <div class="turtle-eye left"></div>
+            <div class="turtle-eye right"></div>
+          </div>
+          <div class="turtle-leg leg-front left"></div>
+          <div class="turtle-leg leg-front right"></div>
+          <div class="turtle-leg leg-back left"></div>
+          <div class="turtle-leg leg-back right"></div>
+        </div>
+      </div>
+      <div class="crab" role="button" tabindex="0">
+        <div class="crab-body">
+          <div class="crab-eye left"></div>
+          <div class="crab-eye right"></div>
+        </div>
+        <div class="crab-claw left"></div>
+        <div class="crab-claw right"></div>
+        <div class="crab-leg left"></div>
+        <div class="crab-leg right"></div>
+      </div>
+      <!-- Polaroid photo sitting on the beach -->
+      <div class="polaroid" role="img" aria-label="Polaroid photo">
+        <img src="polaroid.jpeg" alt="Polaroid photo">
+        <div class="caption">June 2026</div>
+      </div>
+    </div>
+    <div class="overlay"></div>
+  </div>
+  <div class="letter-overlay" id="letterOverlay" role="dialog" aria-modal="true" aria-labelledby="letterTitle" aria-hidden="true">
+    <article class="letter-paper">
+      <h2 class="letter-title" id="letterTitle">A little note</h2>
+      <p class="letter-body" id="letterBody"></p>
+      <div class="letter-controls">
+        <button class="letter-close" id="letterClose" aria-label="Close letter">×</button>
+      </div>
+    </article>
+  </div>
+  <div class="underwater-stage" id="underwaterStage" aria-hidden="true">
+    <iframe class="underwater-frame" src="underwater.html" title="Underwater scene" loading="eager"></iframe>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const updateHorizon = () => {
+      root.style.setProperty('--horizon-offset', `${Math.round(window.innerHeight * 0.46)}px`);
+    };
+    updateHorizon();
+    window.addEventListener('resize', updateHorizon);
+
+    const crab = document.querySelector('.crab');
+    const turtle = document.querySelector('.turtle');
+    const whirlpool = document.querySelector('.whirlpool');
+    const scene = document.querySelector('.scene');
+    const letterOverlay = document.getElementById('letterOverlay');
+    const letterBody = document.getElementById('letterBody');
+    const letterTitle = document.getElementById('letterTitle');
+    const letterClose = document.getElementById('letterClose');
+    const underwaterStage = document.getElementById('underwaterStage');
+    let dialogDismissed = false;
+    let letterTypingRun = 0;
+    let whirlpoolTransitionDone = false;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const letterMessages = {
+      crab: {
+        title: 'Dear Hana,',
+        body: "Every time I think of you, my heart warms like nothing else. I look forward to building SO many more memories and treasure being your boyfriend every single day. You are the best partner a man could ever hope for, and I am so happy that we can begin this new chapter together. You are my everything. I love you so much 🤍! \n \nLove,\n Ian"
+      },
+      turtle: {
+        title: 'Dear Hana,',
+        body: "You are the most BEAUTIFUL, AMAZING, CUTE, and LOVEABLE person ever. I am SO excited to grow alongside you in NYC. I am so proud of you for undertaking this journey and will ALWAYS be on it with you. If you ever need anything, you can always count on me. I will do all I possibly can to make your life as amazing as possible, because that is what I want most in this world. I love you Hana 🤍! \n \n Love,\n Ian"
+      }
+    };
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    function syncWhirlpoolState() {
+      if (!whirlpool) return;
+      const isReady = dialogDismissed && !whirlpoolTransitionDone;
+      whirlpool.classList.toggle('ready', isReady);
+      whirlpool.classList.toggle('locked', !isReady);
+      whirlpool.setAttribute('aria-disabled', isReady ? 'false' : 'true');
+    }
+
+    function activateWhirlpool() {
+      if (!dialogDismissed || whirlpoolTransitionDone) return;
+      whirlpoolTransitionDone = true;
+      syncWhirlpoolState();
+      closeLetter();
+
+      if (underwaterStage) {
+        underwaterStage.classList.add('active');
+        underwaterStage.setAttribute('aria-hidden', 'false');
+      }
+
+      if (scene) {
+        scene.classList.add('scene-hidden');
+      }
+    }
+
+    async function typeLetter(text, runId) {
+      if (!letterBody) return;
+      letterBody.textContent = '';
+
+      if (reducedMotion) {
+        letterBody.textContent = text;
+        return;
+      }
+
+      for (let i = 0; i < text.length; i++) {
+        if (runId !== letterTypingRun) return;
+        letterBody.textContent += text[i];
+        await sleep(36);
+      }
+    }
+
+    function closeLetter() {
+      if (!letterOverlay) return;
+      letterTypingRun += 1;
+      letterOverlay.classList.remove('open');
+      letterOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    async function openLetter(kind) {
+      if (!letterOverlay || !letterBody || !letterTitle) return;
+      const payload = letterMessages[kind];
+      if (!payload) return;
+
+      letterTypingRun += 1;
+      const runId = letterTypingRun;
+
+      letterTitle.textContent = payload.title;
+      letterBody.textContent = '';
+
+      letterOverlay.classList.add('open');
+      letterOverlay.setAttribute('aria-hidden', 'false');
+
+      if (!reducedMotion) {
+        await sleep(140);
+        if (runId !== letterTypingRun) return;
+      }
+
+      typeLetter(payload.body, runId);
+    }
+
+    const activateCrab = () => {
+      if (!dialogDismissed) return;
+      openLetter('crab');
+    };
+
+    const activateTurtle = () => {
+      if (!dialogDismissed) return;
+      openLetter('turtle');
+    };
+
+    if (whirlpool) {
+      whirlpool.addEventListener('click', activateWhirlpool);
+      whirlpool.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activateWhirlpool();
+        }
+      });
+    }
+
+    if (letterOverlay) {
+      letterOverlay.addEventListener('click', (event) => {
+        if (event.target === letterOverlay) {
+          closeLetter();
+        }
+      });
+    }
+
+    if (letterClose) {
+      letterClose.addEventListener('click', closeLetter);
+    }
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && letterOverlay && letterOverlay.classList.contains('open')) {
+        closeLetter();
+      }
+    });
+
+    if (crab) {
+      crab.addEventListener('click', activateCrab);
+      crab.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activateCrab();
+        }
+      });
+    }
+
+    if (turtle) {
+      turtle.addEventListener('click', activateTurtle);
+      turtle.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activateTurtle();
+        }
+      });
+    }
+
+    // 8-bit dialog typing logic
+    (function(){
+      const dialogText = document.getElementById('dialogText');
+      const dialogNext = document.getElementById('dialogNext');
+      const messages = [
+        // "To my dearest Hana,",
+        // "I am so proud of you and excited for you!",
+        // "I did what I could to make you a cute ocean feel!",
+        // "I would've drawn it but I thought it being animated was fun!",
+        // "And I'm a bit better at coding than drawing...",
+        // "Both of the little animals have a message for you!",
+        // "Click them to see it! (after a few Nexts)",
+        // "Once you have done that, click the whirlpool!!",
+        "Have fun! I love you :) -Ian"
+      ];
+      let idx = 0;
+      let typing = false;
+      const typingSpeed = 40; // ms per char
+      const deletingSpeed = 24;
+      const reduced = reducedMotion;
+
+      async function typeMessage(msg){
+        if(!dialogText) return;
+        typing = true;
+        dialogNext.disabled = true;
+        dialogText.textContent = '';
+        if(reduced){ dialogText.textContent = msg; typing = false; dialogNext.disabled = false; return; }
+        for(let i=0;i<msg.length;i++){
+          dialogText.textContent += msg[i];
+          await sleep(typingSpeed);
+        }
+        typing = false;
+        dialogNext.disabled = false;
+      }
+
+      async function deleteMessage(){
+        if(!dialogText) return;
+        dialogNext.disabled = true;
+        if(reduced){ dialogText.textContent = ''; dialogNext.disabled = false; return; }
+        while(dialogText.textContent.length){
+          dialogText.textContent = dialogText.textContent.slice(0,-1);
+          await sleep(deletingSpeed);
+        }
+        dialogNext.disabled = false;
+      }
+
+      async function showNext(){
+        if(typing) return;
+        // If currently on the final message, animate dialog off-screen
+        if(idx === messages.length - 1){
+          // small pause then animate up
+          await sleep(180);
+          const dlg = document.querySelector('.dialog');
+          if(dlg){
+            dlg.classList.add('dialog-hide');
+          }
+          dialogDismissed = true;
+          syncWhirlpoolState();
+          dialogNext.disabled = true;
+          return;
+        }
+        await deleteMessage();
+        idx = (idx + 1) % messages.length;
+        await sleep(120);
+        await typeMessage(messages[idx]);
+      }
+
+      window.addEventListener('load', () => {
+        typeMessage(messages[idx]);
+      });
+
+      if(dialogNext){
+        dialogNext.addEventListener('click', showNext);
+        dialogNext.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showNext(); }
+        });
+      }
+
+      syncWhirlpoolState();
+    })();
+  </script>
+</body>
+</html>
