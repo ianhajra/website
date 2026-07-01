@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Minimal Beach Background</title>
+  <title>For Hana :)</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E" />
   <style>
     :root {
       color-scheme: light;
@@ -17,6 +18,8 @@
       --rock-shadow: rgba(46, 48, 56, 0.08);
       --swell-opacity: 0.16;
       --horizon-offset: 46vh;
+      --sunset-duration: 20s;
+      --sunset-ease: cubic-bezier(0.42, 0, 0.58, 1);
     }
 
     *, *::before, *::after {
@@ -44,6 +47,64 @@
       overflow: hidden;
       background: linear-gradient(180deg, var(--sky-top) 0%, #eaf3fb 42%, var(--sky-bottom) 100%);
       transition: opacity 4000ms ease;
+      isolation: isolate;
+    }
+
+    .sky-sunset {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+      background:
+        linear-gradient(180deg, rgba(196, 222, 255, 0.18) 0%, rgba(232, 214, 255, 0.16) 30%, rgba(255, 209, 175, 0.14) 64%, rgba(255, 222, 192, 0.12) 100%),
+        radial-gradient(130% 70% at 52% 76%, rgba(255, 201, 154, 0.22) 0%, rgba(255, 201, 154, 0.1) 46%, rgba(255, 201, 154, 0) 80%);
+      animation: sunrise-warm-sky var(--sunset-duration) var(--sunset-ease) forwards;
+      z-index: 0;
+    }
+
+    .clear-blue {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+      background:
+        linear-gradient(180deg, rgba(188, 223, 251, 0.32) 0%, rgba(204, 233, 252, 0.28) 42%, rgba(220, 240, 255, 0.22) 100%),
+        radial-gradient(130% 80% at 50% -14%, rgba(226, 244, 255, 0.46) 0%, rgba(226, 244, 255, 0.08) 54%, rgba(226, 244, 255, 0) 100%);
+      animation: sunrise-clear-blue var(--sunset-duration) var(--sunset-ease) forwards;
+      z-index: 0;
+    }
+
+    .ambient-dim {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+      background:
+        radial-gradient(120% 94% at 50% 0%, rgba(255, 239, 212, 0.08) 0%, rgba(255, 239, 212, 0.02) 52%, rgba(255, 239, 212, 0) 100%),
+        linear-gradient(180deg, rgba(23, 34, 48, 0.28) 0%, rgba(24, 39, 56, 0.22) 52%, rgba(25, 45, 64, 0.18) 100%);
+      animation: sunrise-dim-out var(--sunset-duration) var(--sunset-ease) forwards;
+      z-index: 1;
+    }
+
+    .sunset-light {
+      position: absolute;
+      left: 50%;
+      top: calc(var(--horizon-offset) - 20px);
+      width: min(1200px, 130vw);
+      height: 44vh;
+      transform: translate(-50%, -54%) scale(0.85);
+      transform-origin: center;
+      pointer-events: none;
+      opacity: 0.16;
+      will-change: opacity, transform;
+      background:
+        radial-gradient(ellipse at 50% 64%, rgba(255, 204, 150, 0.24) 0%, rgba(255, 204, 150, 0.12) 34%, rgba(255, 204, 150, 0.04) 62%, rgba(255, 204, 150, 0) 100%);
+      filter: blur(14px);
+      animation: sunrise-light-lift var(--sunset-duration) var(--sunset-ease) forwards;
+      z-index: 2;
     }
 
     .scene.scene-hidden {
@@ -59,6 +120,23 @@
       height: 1px;
       background: linear-gradient(90deg, transparent 0%, var(--horizon) 45%, transparent 100%);
       pointer-events: none;
+      z-index: 3;
+    }
+
+    .horizon::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -26px;
+      height: 54px;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+      background:
+        radial-gradient(110% 130% at 50% 58%, rgba(255, 206, 162, 0.28) 0%, rgba(255, 191, 169, 0.16) 36%, rgba(250, 188, 206, 0.1) 56%, rgba(255, 182, 159, 0.02) 82%, rgba(255, 182, 159, 0) 100%);
+      filter: blur(8px);
+      animation: sunrise-horizon-glow var(--sunset-duration) var(--sunset-ease) forwards;
     }
 
     .ocean {
@@ -69,6 +147,7 @@
       bottom: 16%;
       background: linear-gradient(180deg, var(--ocean-start) 0%, #7eb1dd 50%, var(--ocean-end) 100%);
       overflow: hidden;
+      z-index: 2;
     }
 
     .ocean::before,
@@ -93,6 +172,20 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
+      z-index: 2;
+    }
+
+    .ocean-sunset-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+      z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(255, 205, 164, 0.22) 0%, rgba(120, 182, 206, 0.18) 24%, rgba(72, 146, 180, 0.24) 58%, rgba(60, 132, 168, 0.26) 100%),
+        radial-gradient(130% 58% at 50% 0%, rgba(255, 212, 170, 0.32) 0%, rgba(255, 204, 166, 0.16) 24%, rgba(255, 204, 166, 0.05) 40%, rgba(255, 204, 166, 0) 62%);
+      animation: sunrise-ocean-warm var(--sunset-duration) var(--sunset-ease) forwards;
     }
 
     .whirlpool {
@@ -272,6 +365,7 @@
       height: 16%;
       min-height: 100px;
       background: linear-gradient(180deg, rgba(243, 228, 201, 0.98) 0%, var(--sand) 100%);
+      z-index: 2;
     }
 
     .beach::before {
@@ -285,6 +379,19 @@
       background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1200 45'%3E%3Cpath d='M0 28 Q 200 18 400 26 Q 600 32 800 22 Q 1000 16 1200 28 L 1200 55 L 0 55 Z' fill='rgba(243, 228, 201, 0.98)'/%3E%3C/svg%3E") no-repeat center;
       background-size: 100% 100%;
       pointer-events: none;
+    }
+
+    .beach::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+      background:
+        linear-gradient(180deg, rgba(255, 220, 176, 0.16) 0%, rgba(245, 208, 151, 0.2) 100%),
+        radial-gradient(140% 160% at 50% -30%, rgba(255, 231, 194, 0.2) 0%, rgba(255, 231, 194, 0) 56%);
+      animation: sunrise-sand-warm var(--sunset-duration) var(--sunset-ease) forwards;
     }
 
     /* Polaroid-style photo sitting on the beach */
@@ -595,6 +702,51 @@
       background:
         radial-gradient(circle at 40% 12%, rgba(255,255,255,0.08), transparent 18%),
         radial-gradient(circle at 18% 42%, rgba(255,255,255,0.05), transparent 14%);
+      z-index: 4;
+    }
+
+    @keyframes sunrise-warm-sky {
+      0% { opacity: 0.52; }
+      45% { opacity: 0.36; }
+      100% { opacity: 0.06; }
+    }
+
+    @keyframes sunrise-clear-blue {
+      0% { opacity: 0; }
+      100% { opacity: 0.36; }
+    }
+
+    @keyframes sunrise-dim-out {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes sunrise-horizon-glow {
+      0% { opacity: 0.38; }
+      55% { opacity: 0.22; }
+      100% { opacity: 0.02; }
+    }
+
+    @keyframes sunrise-ocean-warm {
+      0% { opacity: 0.46; }
+      52% { opacity: 0.28; }
+      100% { opacity: 0.06; }
+    }
+
+    @keyframes sunrise-sand-warm {
+      0% { opacity: 0.28; }
+      100% { opacity: 0.06; }
+    }
+
+    @keyframes sunrise-light-lift {
+      0% {
+        opacity: 0.28;
+        transform: translate(-50%, -20%) scale(0.9);
+      }
+      100% {
+        opacity: 0.08;
+        transform: translate(-50%, -52%) scale(1.08);
+      }
     }
 
     @media (max-aspect-ratio: 4/5) {
@@ -603,6 +755,16 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      .sky-sunset,
+      .clear-blue,
+      .ambient-dim,
+      .sunset-light,
+      .horizon::after,
+      .ocean-sunset-overlay,
+      .beach::after {
+        animation: none;
+      }
+
       .ocean::before,
       .ocean::after,
       .wave,
@@ -852,6 +1014,10 @@
 </head>
 <body>
   <div class="scene" aria-hidden="true">
+    <div class="sky-sunset"></div>
+    <div class="clear-blue"></div>
+    <div class="ambient-dim"></div>
+    <div class="sunset-light"></div>
     <div class="horizon"></div>
     <div class="dialog" aria-label="Game dialog" role="region">
       <div class="dialog-window">
@@ -860,6 +1026,7 @@
       </div>
     </div>
     <div class="ocean">
+      <div class="ocean-sunset-overlay"></div>
       <div class="wave-lines">
         <div class="wave" style="--x: 12%; --y: 14%; --width: 28px; --scale: 0.9; --rotation:-1.6deg; --duration: 7s; --delay: 0s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 18 3 36 15 54 7 C 72 -1 90 13 100 8%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 11 C 18 3 36 15 54 7 C 72 -1 90 13 100 8%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
         <div class="wave" style="--x: 72%; --y: 8%; --width: 24px; --scale: 0.88; --rotation:-1.9deg; --duration: 7.4s; --delay: 2.1s; --wave-bg: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 15 4 35 14 50 8 C 70 2 85 12 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.62)%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E'); --wave-shadow: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 18%22%3E%3Cpath d=%22M0 12 C 15 4 35 14 50 8 C 70 2 85 12 100 10%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.25)%22 stroke-width=%221.2%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
@@ -914,8 +1081,8 @@
       </div>
       <!-- Polaroid photo sitting on the beach -->
       <div class="polaroid" role="img" aria-label="Polaroid photo">
-        <img src="polaroid.jpeg" alt="Polaroid photo">
-        <div class="caption">June 2026</div>
+        <img src="polaroid2.jpeg" alt="Polaroid photo">
+        <div class="caption">Spring 2026</div>
       </div>
     </div>
     <div class="overlay"></div>
